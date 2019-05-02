@@ -30,19 +30,6 @@ services:
         - WEBSERVER_2_IP=${WEBSERVER_2_IP}
         - WEBSERVER_1_EXPOSED_PORT=${WEBSERVER_1_EXPOSED_PORT}
         - WEBSERVER_2_EXPOSED_PORT=${WEBSERVER_2_EXPOSED_PORT}
-  haproxy_exporter:
-    container_name: my_haproxy_exporter
-    image: prom/haproxy-exporter
-    ports:
-      - "9101:9101"
-    depends_on:
-      - haproxy_img
-    links:
-      - haproxy_img:hi
-    networks:
-      - web
-    restart: on-failure:10
-    command: --haproxy.scrape-uri=${HAPROXY_EXPORTER_SCRAPE_URL}
   influxdb:
     image: influxdb
     container_name: influxdb
