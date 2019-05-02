@@ -1,0 +1,88 @@
+version: "3"
+
+services:
+  website1:
+    container_name: website_1
+    build: "./website1"
+    ports:
+      - "8000:8000"
+    networks:
+        - web
+  website2:
+    container_name: website_2
+    build: "./website2"
+    ports:
+      - "8001:8001"
+    networks:
+        - web
+  haproxy_img:
+    build: ./haproxy
+    ports:
+        - 9000:9000
+    links:
+      - website1
+      - website2
+    networks:
+        - web
+    restart: always
+    environment:
+        - WEBSERVER_1_IP=${WEBSERVER_1_IP}
+        - WEBSERVER_2_IP=${WEBSERVER_2_IP}
+        - WEBSERVER_1_EXPOSED_PORT=${WEBSERVER_1_EXPOSED_PORT}
+        - WEBSERVER_2_EXPOSED_PORT=${WEBSERVER_2_EXPOSED_PORT}
+  haproxy_exporter:
+    container_name: my_haproxy_exporter
+    image: prom/haproxy-exporter
+    ports:
+      - "9101:9101"
+    depends_on:
+      - haproxy_img
+    links:
+      - haproxy_img:hi
+    networks:
+      - web
+    restart: on-failure:10
+    command: --haproxy.scrape-uri=${HAPROXY_EXPORTER_SCRAPE_URL}
+  influxdb:
+    image: influxdb
+    container_name: influxdb
+    restart: always
+    ports:
+      - 8086:8086
+    networks:
+      - web
+    volumes:
+      - ${PWD}/influxdb/data:/var/lib/influxdb
+  telegraf:
+    image: telegraf
+    restart: always
+    depends_on:
+      - haproxy_img
+      - influxdb
+    links:
+      - haproxy_img:hi
+      - influxdb:influxdb
+    networks:
+      - web
+    volumes:
+    - ${PWD}/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+  grafana:
+    image: grafana/grafana
+    user: "104"
+    depends_on:
+      - influxdb
+    links:
+      - influxdb:influxdb
+    ports:
+      - 3000:3000
+    volumes:
+      - ${PWD}/grafana/data:/var/lib/grafana
+      - ${PWD}/grafana/provisioning/:/etc/grafana/provisioning/
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - web
+    restart: always
+networks:
+  web:
+    driver: bridge
