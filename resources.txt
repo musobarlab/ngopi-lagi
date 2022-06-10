@@ -1,0 +1,14 @@
+- install statsd, telegraf etc
+https://gist.github.com/wuriyanto48/d4d9cb6ab739f36db4260773a808b828
+
+- Read:
+https://onlyoneaman.medium.com/how-to-install-tig-stack-telegraf-influx-and-grafana-on-ubuntu-405755901ac2
+
+- Basic template grafana
+https://grafana.com/grafana/dashboards/5955
+
+- telegraf input statsd
+https://github.com/influxdata/telegraf/blob/master/plugins/inputs/statsd/README.md
+
+- stasd
+https://github.com/statsd/statsd
